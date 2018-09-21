@@ -276,7 +276,7 @@ var HomeTestComponent = /** @class */ (function () {
     function HomeTestComponent() {
         this.image = {
             message: 'Progressive Web Cat',
-            api: 'https://iloveyins.github.io/pwatest',
+            api: 'https://iloveyins.github.io/',
             fontsize: 40
         };
         this.array = ["https://os.alipayobjects.com/rmsportal/QBnOOoLaAfKPirc.png",
@@ -305,7 +305,7 @@ var HomeTestComponent = /** @class */ (function () {
     };
     HomeTestComponent.prototype.ngOnInit = function () {
         if (navigator.onLine) {
-            this.generateSrc();
+            //this.generateSrc();
         }
         else {
             this.src = 'https://os.alipayobjects.com/rmsportal/QBnOOoLaAfKPirc.png';
