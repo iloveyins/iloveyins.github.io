@@ -1,17 +1,80 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <title>Pwatest</title>
   <base href="/">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="mobile-web-app-capable" content="yes">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1976d2">
-</head>
+<link rel="stylesheet" href="styles.5cba5accbce819f85d87.css"></head>
+
 <body>
   <app-root></app-root>
   <noscript>Please enable JavaScript to continue using this application.</noscript>
-<script type="text/javascript" src="runtime.js"></script><script type="text/javascript" src="polyfills.js"></script><script type="text/javascript" src="styles.js"></script><script type="text/javascript" src="vendor.js"></script><script type="text/javascript" src="main.js"></script></body>
+<script type="text/javascript" src="runtime.ec2944dd8b20ec099bf3.js"></script><script type="text/javascript" src="polyfills.f6ae3e8b63939c618130.js"></script><script type="text/javascript" src="main.4f76210451a603a15900.js"></script></body>
+
 </html>
+
+<script>
+  // 检测浏览器是否支持SW
+  if (navigator.serviceWorker != null) {
+    navigator.serviceWorker.register('ngsw-worker.js')
+      .then(function (registartion) {
+        console.log('支持sw:', registartion.scope)
+      })
+  }
+
+  // 我们的客户数据看起来像这样。
+  const customerData = [{
+      ssn: "444-44-4444",
+      name: "Bill",
+      age: 35,
+      email: "bill@company.com"
+    },
+    {
+      ssn: "555-55-5555",
+      name: "Donna",
+      age: 32,
+      email: "donna@home.org"
+    }
+  ];
+  const dbName = "the_name";
+
+  var request = indexedDB.open(dbName, 2);
+
+  request.onerror = function (event) {
+    // 错误处理程序在这里。
+  };
+  request.onupgradeneeded = function (event) {
+    var db = event.target.result;
+
+    // 创建一个对象存储空间来持有有关我们客户的信息。
+    // 我们将使用 "ssn" 作为我们的 key path 因为它保证是唯一的。
+    var objectStore = db.createObjectStore("customers", {
+      keyPath: "ssn"
+    });
+
+    // 创建一个索引来通过 name 搜索客户。
+    // 可能会有重复的，因此我们不能使用 unique 索引。
+    objectStore.createIndex("name", "name", {
+      unique: false
+    });
+
+    // 创建一个索引来通过 email 搜索客户。
+    // 我们希望确保不会有两个客户使用相同的 email 地址，因此我们使用一个 unique 索引。
+    objectStore.createIndex("email", "email", {
+      unique: true
+    });
+
+    // 在新创建的对象存储空间中保存值
+    for (var i in customerData) {
+      objectStore.add(customerData[i]);
+    }
+  };
+
+</script>
