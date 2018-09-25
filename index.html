@@ -1,18 +1,122 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <title>Pwatest</title>
   <base href="/">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="mobile-web-app-capable" content="yes">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1976d2">
 </head>
+
 <body>
   <app-root></app-root>
   <noscript>Please enable JavaScript to continue using this application.</noscript>
 <script type="text/javascript" src="runtime.js"></script><script type="text/javascript" src="polyfills.js"></script><script type="text/javascript" src="styles.js"></script><script type="text/javascript" src="vendor.js"></script><script type="text/javascript" src="main.js"></script></body>
+
 </html>
-<!-- <script src="../script.js"></script> -->
+
+<script>
+  // 检测浏览器是否支持SW
+  if (navigator.serviceWorker != null) {
+    navigator.serviceWorker.register('ngsw-worker.js')
+      .then(function (registartion) {
+        console.log('支持sw:', registartion.scope)
+      })
+  }
+
+  var myDB = {
+    name: "test",
+    version: 3, //所谓版本，并不是指数据库这个软件的版本，而是自定义的这个库的版本，当需要更新数据模式时，就提高数据库的版本就行了
+    db: null
+  };
+
+  function openDB(name, version) {
+    var version = version || 1;
+    var request = indexedDB.open(name, version);
+    request.onerror = function (e) {
+      console.log("openDB error!");
+    };
+
+    request.onsuccess = function (e) {
+      //个人感觉可能把DB对象return出去比较好，这样写复用性应该不太好，不过是测试嘛，就简单写咯
+      myDB.db = e.target.result;
+    };
+
+    request.onupgradeneeded = function (e) {
+      var db = e.target.result;
+      if (!db.objectStoreNames.contains('students')) {
+        db.createObjectStore('students', {
+          keyPath: 'id'
+        });
+      }
+      console.log("indexDB version change to " + version);
+    }
+  }
+
+  //先准备一些数据，向objectStore中添加
+  var students = [{
+    id: 1001,
+    name: "John",
+    age: 24
+  }, {
+    id: 1002,
+    name: "Jane",
+    age: 25
+  }, {
+    id: 1003,
+    name: "Bob",
+    age: 30
+  }];
+
+  //通过value查询
+  function getDataByKey(db, storeName, value) {
+    var transaction = db.transaction(storeName, 'readwrite');
+    var store = transaction.objectStore(storeName);
+    var request = store.get(value);
+    request.onsuccess = function (e) {
+      var student = e.target.result;
+      console.log(student);
+    }
+  }
+
+  //更新数据，通过调用store的put方法来更新数据。会自动替换键值相同的记录，达到更新目的，没有相同的则添加
+  function updateDataByKey(db, storeName, student1) {
+    var transaction = db.transaction(storeName, 'readwrite');
+    var store = transaction.objectStore(storeName);
+    var request = store.get(student1.id);
+    request.onsuccess = function (e) {
+      //var student=e.target.result;
+      store.put(student1);
+    };
+  }
+
+  //添加数据
+  function addData(db, storeName) {
+    var transaction = db.transaction(storeName, 'readwrite');
+    var store = transaction.objectStore(storeName);
+    for (let i = 0; i < students.length; i++) {
+      store.add(students[i]);
+    }
+  }
+
+  //准备的用于更新的数据
+  var student1 = {
+    name: 'wu',
+    gender: "male",
+    id: 1004
+  };
+
+  //openDB(myDB.name, myDB.version);
+  //由于API是异步的，所以不保证在打开数据库后myDB能获取到db对象，所以用setTimeout延时一下，确保myDB中的db对象不为空
+  // setTimeout(function () {
+  //   addData(myDB.db, 'students');
+  //   getDataByKey(myDB.db, 'students', 1002);
+  //   updateDataByKey(myDB.db, 'students', student1);
+  // }, 1000);
+
+</script>
